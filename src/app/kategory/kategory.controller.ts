@@ -1,4 +1,13 @@
-import { Body, Controller, Get, Param, Post, Put, UseGuards } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Delete,
+  Get,
+  Param,
+  Post,
+  Put,
+  UseGuards,
+} from '@nestjs/common';
 import { KategoryService } from './kategory.service';
 import {
   CreateKategoriDto,
@@ -23,7 +32,7 @@ export class KategoriController {
 
   @Get('list')
   async getAllCategory(@Pagination() query: findAllKategori) {
-    //gunakan custom decorator yang pernah kita buat
+    // return 'ok';
     return this.kategoriService.getAllCategory(query);
   }
 
@@ -35,12 +44,23 @@ export class KategoriController {
   @Put('update/:id')
   async updateKategori(
     @Param('id') id: string,
-    @UpdatedBy() payload: UpdateKategoriDto
+    @UpdatedBy() payload: UpdateKategoriDto,
   ): Promise<ResponseSuccess> {
     const result = await this.kategoriService.updateKategori(
       Number(id),
-      payload
+      payload,
     );
     return result;
+  }
+
+  @Delete('delete/:id')
+  async hapus(@Param('id') id: string) {
+    return this.kategoriService.deleteKategoris(Number(id));
+  }
+
+  @Get('user/list')
+  async getUserCategori() {
+    return 'oke routing berhasil';
+    // return this.kategoriService.getUserCategori();
   }
 }

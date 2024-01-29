@@ -16,12 +16,15 @@ import {
   UpdateKategoriDto,
   findAllKategori,
 } from './kategory.dto';
+import { User } from '../auth/auth.entity';
 
 @Injectable()
 export class KategoryService extends BaseResponse {
   constructor(
     @InjectRepository(Kategori)
     private readonly kategoriRepository: Repository<Kategori>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
     @Inject(REQUEST) private req: any, // inject request agar bisa mengakses req.user.id dari  JWT token pada service
   ) {
     super();
@@ -38,12 +41,22 @@ export class KategoryService extends BaseResponse {
   }
 
   async getAllCategory(query: findAllKategori): Promise<ResponsePagination> {
-    const { page, pageSize, limit, nama_kategori } = query;
+    const { page, pageSize, limit, nama_kategori, nama_user } = query;
+
+    console.log('query', query);
 
     const filterQuery: any = {};
     if (nama_kategori) {
       filterQuery.nama_kategori = Like(`%${nama_kategori}%`);
     }
+
+    if (nama_user) {
+      filterQuery.created_by = {
+        nama: Like(`%${nama_user}%`),
+      };
+    }
+
+    console.log('filterQuery', filterQuery);
 
     const total = await this.kategoriRepository.count({
       where: filterQuery,
@@ -69,7 +82,7 @@ export class KategoryService extends BaseResponse {
       take: pageSize,
     });
 
-    return this._pagination('oke', result, total, page, pageSize);
+    return this._pagination('okehhhhhhh', query, total, page, pageSize);
   }
 
   async detailKategori(id: number): Promise<ResponseSuccess> {
@@ -119,5 +132,19 @@ export class KategoryService extends BaseResponse {
     });
 
     return this._success('Kategori updated successfully', data);
+  }
+
+  async deleteKategoris(id: number): Promise<ResponseSuccess> {
+    const check = await this.kategoriRepository.findOne({
+      where: {
+        id: id,
+      },
+    });
+
+    if (!check) {
+      throw new NotFoundException(`kategori dengan id ${id} tidak ditemukan`);
+    }
+    await this.kategoriRepository.delete(id);
+    return this._success('succes', check);
   }
 }
